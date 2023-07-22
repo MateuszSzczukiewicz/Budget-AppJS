@@ -1,0 +1,94 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --income-color: #55c57a;
+    --expense-color: #bb1414;
+    --grey-color: #3f3f3f;
+    --form-background-color: #e2ebf0;
+    --balance-background-color: #cfd9df;
+}
+
+.budget {
+    display: flex;
+    flex-direction: row;
+}
+
+@media (min-width: 768px) {
+    .budget {
+        flex-direction: column;
+    }
+}
+
+.budget__form {
+    background-color: var(--form-background-color);
+    height: 100vh;
+    width: 50vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.budget__title {
+    position: absolute;
+    top: 30px;
+    left: 10px;
+    font-size: 36px;
+    font-family: Lato, sans-serif;
+}
+
+.budget__error {
+    display: none;
+    color: var(--expense-color);
+    font-family: Lato, sans-serif;
+    margin-bottom: 20px;
+}
+
+.budget__inputs {
+    display: flex;
+    flex-direction: row;
+}
+
+.budget__switch {
+    background-color: var(--expense-color);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.budget__input {
+    all: unset;
+    background-color: white;
+    border-bottom: 3px solid var(--grey-color);
+    height: 40px;
+    width: 110px;
+    margin: 0 10px;
+    cursor: text;
+    transition: .2s;
+    padding: 0 20px;
+}
+
+::placeholder {
+    color: black;
+    font-family: Lato, sans-serif;
+}
+
+.budget__input:focus {
+    border-color: var(--income-color);
+}
+
+.budget__button {
+    background-color: var(--income-color);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: .2s linear;
+}
