@@ -37,18 +37,20 @@
 }
 
 .budget__error {
-    display: none;
+    visibility: hidden;
     color: var(--expense-color);
     font-family: Lato, sans-serif;
     margin-bottom: 20px;
 }
 
 .budget__inputs {
+    position: relative;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
     font-family: Lato, sans-serif;
     width: 420px;
+    height: 100px;
 }
 
 .budget__switch {
@@ -66,6 +68,13 @@
     background-color: white;
     width: 22px;
     height: 4px;
+    transform: rotate(0deg);
+    transition: 0.25s;
+}
+
+.budget__icon--isActive {
+    transform: rotate(90deg);
+    transition: 0.25s;
 }
 
 .budget__input {
@@ -94,7 +103,6 @@
     height: 40px;
     border-radius: 50%;
     cursor: pointer;
-    transition: .2s linear;
 }
 
 .budget__check-icon {
@@ -166,9 +174,17 @@
 }
 
 .list__item {
+    position: relative;
     display: flex;
-    justify-content: space-between;
     width: 250px;
+}
+
+.item__description {
+    margin-left: 10px;
+}
+
+.item__values {
+    margin-left: auto;
 }
 
 .item__value--incomes {
@@ -202,7 +218,6 @@
     height: 25px;
     width: 25px;
 }
-
 
 @media (max-width: 768px) {
     .budget {
