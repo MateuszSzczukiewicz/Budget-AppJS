@@ -15,7 +15,8 @@ const budgetError = document.getElementById('budget-error')
 
 let isActive = false;
 let isValid = false;
-let numberOfItems = 0;
+let numberOfIncomesItems = 0;
+let numberOfExpensesItems = 0;
 let totalValue = 0;
 
 const switchFinances = () => {
@@ -30,11 +31,37 @@ const switchFinances = () => {
     }
 }
 
+    const createFinance = (id, description, value, type) => {
+        let financeItemHTML = '';
+        const formattedValue = type === 'incomes' ? `+ ${value} PLN` : `- ${value} PLN`;
+        // const formattedValue = value >= 0 ? `+ ${value} PLN` : `- ${Math.abs(value)} PLN`;
+
+        financeItemHTML = `
+        <div class="list__list" id="${id}">
+            <div class="list__item">
+                <p class="item__description">${description}</p>
+                <p class="item__values item__value--${type}">${formattedValue}</p>
+                <div class="item__buttons">
+                    <button class="item__button item__button--edit">
+                        <img class="item__icon" src="assets/editIcon.svg" alt="Edit icon">
+                    </button>
+                    <button class="item__button item__button--delete" onclick="deleteFinance('${id}')">
+                        <img class="item__icon" src="assets/deleteIcon.svg" alt="Delete icon">
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+        console.log(id);
+        return financeItemHTML;
+}
+
 const addFinance = () => {
     const newFinanceItem = document.createElement('div');
-    newFinanceItem.classList.add('list__list')
     const description = budgetDescription.value;
     const value = Number(budgetValue.value);
+    const id = `finance-${Date.now()}`;
 
     if (value <= 0 && description === '') {
         budgetError.style.visibility = 'visible';
@@ -45,63 +72,66 @@ const addFinance = () => {
     }
 
     if (!isActive && !isValid) {
-        headingExpenses.style.display = 'block'
-        newFinanceItem.innerHTML = `
-                <div class="list__item">
-                  <p class="item__description">${description}</p>
-                  <p class="item__values item__value--expenses">- ${value} PLN</p>
-                </div>
-                <div class="item__buttons">
-                  <button class="item__button item__button--edit">
-                    <img class="item__icon" src="assets/editIcon.svg" alt="Edit icon">
-                  </button>
-                  <button class="item__button item__button--delete">
-                    <img class="item__icon" src="assets/deleteIcon.svg" alt="Delete icon">
-                  </button>
-                </div>
-        `
+        headingExpenses.style.display = 'block';
+        newFinanceItem.innerHTML = createFinance(id, description, value, 'expenses');
 
-        listExpenses.append(newFinanceItem)
-        numberOfItems++;
+        listExpenses.append(newFinanceItem);
+        numberOfExpensesItems++;
         totalValue -= value;
 
         budgetDescription.value = '';
         budgetValue.value = '';
     } else if (isActive && !isValid) {
-        headingIncomes.style.display = 'block'
-        newFinanceItem.innerHTML = `
-            <div class="list__item">
-                <p class="item__description">${description}</p>
-                <p class="item__values item__value--incomes">+ ${value} PLN</p>
-                <div class="item__buttons">
-                    <button class="item__button item__button--edit">
-                        <img class="item__icon" src="assets/editIcon.svg" alt="Edit icon">
-                    </button>
-                    <button class="item__button item__button--delete">
-                        <img class="item__icon" src="assets/deleteIcon.svg" alt="Delete icon">
-                    </button>
-                </div>
-            </div>
-        `
+        headingIncomes.style.display = 'block';
+        newFinanceItem.innerHTML = createFinance(id, description, value, 'incomes');
 
-        listIncomes.append(newFinanceItem)
-        numberOfItems++;
+        listIncomes.append(newFinanceItem);
+        numberOfIncomesItems++;
         totalValue += value;
 
         budgetDescription.value = '';
         budgetValue.value = '';
     }
 
-    if (numberOfItems === 0) {
-        headingExpenses.style.display = 'none';
-        headingIncomes.style.display = 'none';
+    balanceValue.innerText = totalValue >= 0 ? `+${totalValue} PLN` : `${totalValue} PLN`;
+    balanceValue.style.color = totalValue >= 0 ? `var(--income-color)` : `var(--expense-color)`;
+    financeHeadingVisibility()
+};
+
+const deleteFinance = (id, type) => {
+    const financeItem = document.getElementById(id);
+    const valueElement = financeItem.querySelector('.item__values');
+    const value = Number(valueElement);
+
+    if (value > 0) {
+        totalValue -= value;
+    } else if (value < 0) {
+        totalValue += Math.abs(value);
     }
 
-    balanceValue.innerText = totalValue >= 0 ? `+${totalValue} PLN` : `${totalValue} PLN`
-    balanceValue.style.color = totalValue >= 0 ? `var(--income-color)` : `var(--expense-color)`
+    financeItem.remove()
+    if (type === 'incomes') {
+        numberOfIncomesItems--;
+    } else if (type === 'expenses') {
+        numberOfExpensesItems--;
+    }
+
+
+    balanceValue.innerText = totalValue >= 0 ? `+${totalValue} PLN` : `${totalValue} PLN`;
+    balanceValue.style.color = totalValue >= 0 ? `var(--income-color)` : `var(--expense-color)`;
+    financeHeadingVisibility()
+    return value;
 }
 
+const financeHeadingVisibility = () => {
+    if (numberOfExpensesItems === 0) {
+        headingExpenses.style.display = 'none';
+    }
 
+    if (numberOfIncomesItems === 0) {
+        headingIncomes.style.display = 'none';
+    }
+}
 
 budgetSwitch.addEventListener('click', switchFinances)
 budgetCheck.addEventListener('click', addFinance)
