@@ -186,6 +186,13 @@
     margin-left: 10px;
 }
 
+.item__description--truncate {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .item__plus-icon {
     margin-left: auto;
 }

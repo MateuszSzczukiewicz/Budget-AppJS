@@ -36,11 +36,12 @@ const createFinance = (id, description, value, type) => {
     let itemValue = type === 'incomes' ? `${formatNumberWithTwoDecimals(value)}` : `-${formatNumberWithTwoDecimals(value)}`;
     let currencyColor = type === 'incomes' ? 'var(--income-color)' : 'var(--expense-color)';
     let plusIconVisibility = type === 'incomes' ? 'visible' : 'hidden';
+    const descriptionClass = description.length > 15 ? 'item__description--truncate' : '';
 
     financeItemHTML = `
     <div class="list__list" id="${id}">
         <div class="list__item">
-            <p class="item__description">${description}</p>
+            <p class="item__description ${descriptionClass}">${description}</p>
             <span class="item__plus-icon item__value--incomes" style="visibility: ${plusIconVisibility}">+</span>
             <p class="item__values item__value--${type}">${itemValue}</p>
             <span class="item__currency" style="color: ${currencyColor}">PLN</span>
@@ -93,6 +94,57 @@ const formatNumberWithTwoDecimals = (number) => {
     return number.toFixed(2);
 };
 
+const calculateTotalValue = () => {
+    let total = 0;
+    document.querySelectorAll('.item__values').forEach((valueElement) => {
+        total += parseFloat(valueElement.textContent)
+    })
+    return total;
+}
+
+const saveDataToLocalStorage = () => {
+    const incomesData = [];
+    const expensesData = [];
+
+    document.querySelectorAll('.list__list').forEach((financeItem) => {
+        const id = financeItem.id;
+        const description = financeItem.querySelector('.item__description').textContent;
+        const value = Math.abs(parseFloat(financeItem.querySelector('.item__values').textContent));
+        const type = value >= 0 ? 'incomes' : 'expenses';
+
+        const financeData = { id, description, value };
+
+        if (type === 'incomes') {
+            incomesData.push(financeData);
+        } else {
+            expensesData.push(financeData);
+        }
+    });
+
+    localStorage.setItem('incomes', JSON.stringify(incomesData));
+    localStorage.setItem('expenses', JSON.stringify(expensesData));
+};
+
+const getDataToLocalStorage = () => {
+    const incomesData = JSON.parse(localStorage.getItem('incomes') || '[]');
+    const expensesData = JSON.parse(localStorage.getItem('expenses') || '[]');
+
+    for (const income of incomesData) {
+        const newIncomeItem = document.createElement('div');
+        newIncomeItem.innerHTML = createFinance(income.id, income.description, income.value, 'incomes');
+        listIncomes.append(newIncomeItem);
+    }
+
+    for (const expense of expensesData) {
+        const newExpenseItem = document.createElement('div');
+        newExpenseItem.innerHTML = createFinance(expense.id, expense.description, expense.value, 'expenses');
+        listExpenses.append(newExpenseItem);
+    }
+
+    totalValue = calculateTotalValue();
+    financeHeadingVisibility();
+}
+
 const addFinance = () => {
     const description = budgetDescription.value.trim();
     const value = Number(budgetValue.value);
@@ -125,6 +177,7 @@ const addFinance = () => {
     }
 
     financeHeadingVisibility();
+    saveDataToLocalStorage()
 };
 
 const deleteFinance = (id, type) => {
@@ -147,6 +200,7 @@ const deleteFinance = (id, type) => {
     }
 
     financeHeadingVisibility();
+    saveDataToLocalStorage()
 };
 
 const editFinance = (id, type) => {
@@ -184,6 +238,8 @@ const editFinance = (id, type) => {
         budgetValue.removeEventListener('keydown', handleBudgetValueKeydown);
         isActive = true;
         switchFinances()
+        isEditing = false;
+        saveDataToLocalStorage()
     };
 
     const handleBudgetDescriptionKeydown = (event) => {
@@ -219,6 +275,10 @@ const financeHeadingVisibility = () => {
     const formattedTotalValue = formatNumberWithTwoDecimals(totalValue);
     balanceValue.innerText = totalValue >= 0 ? `+${formattedTotalValue} PLN` : `${formattedTotalValue} PLN`;
     balanceValue.style.color = totalValue >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
+
+    saveDataToLocalStorage()
 };
 
 budgetSwitch.addEventListener('click', switchFinances);
+
+document.addEventListener('DOMContentLoaded', getDataToLocalStorage)
