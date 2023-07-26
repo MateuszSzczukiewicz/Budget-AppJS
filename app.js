@@ -11,7 +11,6 @@ const headingIncomes = document.getElementById('heading-incomes')
 const headingExpenses = document.getElementById('heading-expenses')
 
 const balanceValue = document.getElementById('balance-value')
-const balanceCurrency = document.querySelector('.item__currency')
 const budgetError = document.getElementById('budget-error')
 
 let isActive = false;
@@ -44,7 +43,7 @@ const switchFinances = () => {
                 <p class="item__values item__value--${type}">${itemValue}</p>
                 <span class="item__currency" style="color: ${currencyColor}">PLN</span>
                 <div class="item__buttons">
-                    <button class="item__button item__button--edit" onclick="editFinance('${id}')">
+                    <button class="item__button item__button--edit" onclick="editFinance('${id}', '${type}')">
                         <img class="item__icon" src="assets/editIcon.svg" alt="Edit icon">
                     </button>
                     <button class="item__button item__button--delete" onclick="deleteFinance('${id}', '${type}')">
@@ -67,6 +66,16 @@ isValidInput = (description, value) => {
         return true;
     }
 };
+
+const handleBudgetCheckClick = () => {
+    if (isEditing) {
+        return;
+    }
+
+    addFinance()
+}
+
+budgetCheck.addEventListener('click', handleBudgetCheckClick)
 
 const addFinance = () => {
     const description = budgetDescription.value.trim();
@@ -122,7 +131,8 @@ const deleteFinance = (id, type) => {
     financeHeadingVisibility()
 }
 
-const editFinance = (id) => {
+const editFinance = (id, type) => {
+    isEditing = true;
     const financeItem = document.getElementById(id);
     const descriptionElement = financeItem.querySelector('.item__description');
     const valueElement = financeItem.querySelector('.item__values');
@@ -131,21 +141,35 @@ const editFinance = (id) => {
     const originalValue = Number(valueElement.textContent);
 
     budgetDescription.value = originalDescription;
+
     budgetValue.value = Math.abs(originalValue);
 
-    budgetCheck.addEventListener('click', () => {
+    const handleBudgetCheckClickDuringEdit = () => {
         const editedDescription = budgetDescription.value;
         const editedValue = Number(budgetValue.value);
+        const typeValue = type === 'incomes' ? editedValue : -editedValue;
+
+        console.log(totalValue, originalValue, typeValue)
+
+        totalValue = totalValue - originalValue + typeValue;
 
         if (isValidInput(editedDescription, editedValue)) {
             descriptionElement.textContent = editedDescription;
-            valueElement.textContent = `${editedValue}`;
+            valueElement.textContent = type === 'incomes' ? `${editedValue}` : `-${editedValue}`;
+            valueElement.value = typeValue;
+
+            budgetDescription.value = '';
+            budgetValue.value = '';
 
             isEditing = false;
 
             financeHeadingVisibility();
         }
-    });
+
+        budgetCheck.removeEventListener('click', handleBudgetCheckClickDuringEdit);
+    };
+
+    budgetCheck.addEventListener('click', handleBudgetCheckClickDuringEdit)
 };
 
 
