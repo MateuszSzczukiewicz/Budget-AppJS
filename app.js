@@ -33,7 +33,7 @@ const switchFinances = () => {
 
     const createFinance = (id, description, value, type) => {
         let financeItemHTML = '';
-        let itemValue = type === 'incomes' ? `${value}` : `${-value}`;
+        let itemValue = type === 'incomes' ? `${formatNumberWithTwoDecimals(value)}` : `-${formatNumberWithTwoDecimals(value)}`;
         let currencyColor = type === 'incomes' ? `${'var(--income-color)'}` : `${'var(--expense-color)'}`;
 
         financeItemHTML = `
@@ -76,6 +76,10 @@ const handleBudgetCheckClick = () => {
 }
 
 budgetCheck.addEventListener('click', handleBudgetCheckClick)
+
+const formatNumberWithTwoDecimals = (number) => {
+    return number.toFixed(2);
+};
 
 const addFinance = () => {
     const description = budgetDescription.value.trim();
@@ -149,13 +153,11 @@ const editFinance = (id, type) => {
         const editedValue = Number(budgetValue.value);
         const typeValue = type === 'incomes' ? editedValue : -editedValue;
 
-        console.log(totalValue, originalValue, typeValue)
-
         totalValue = totalValue - originalValue + typeValue;
 
         if (isValidInput(editedDescription, editedValue)) {
             descriptionElement.textContent = editedDescription;
-            valueElement.textContent = type === 'incomes' ? `${editedValue}` : `-${editedValue}`;
+            valueElement.textContent = type === 'incomes' ? `${formatNumberWithTwoDecimals(editedValue)}` : `-${formatNumberWithTwoDecimals(editedValue)}`;
             valueElement.value = typeValue;
 
             budgetDescription.value = '';
@@ -182,7 +184,7 @@ const financeHeadingVisibility = () => {
         headingIncomes.style.display = 'none';
     }
 
-    balanceValue.innerText = totalValue >= 0 ? `+${totalValue} PLN` : `${totalValue} PLN`;
+    balanceValue.innerText = totalValue >= 0 ? `+${formatNumberWithTwoDecimals(totalValue)} PLN` : `${formatNumberWithTwoDecimals(totalValue)} PLN`;
     balanceValue.style.color = totalValue >= 0 ? `var(--income-color)` : `var(--expense-color)`;
 }
 
