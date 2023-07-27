@@ -19,88 +19,62 @@ let numberOfIncomesItems = 0;
 let numberOfExpensesItems = 0;
 let totalValue = 0;
 
-const switchFinances = () => {
-    if (!isActive) {
-        budgetSwitch.style.backgroundColor = 'var(--income-color)';
-        plusIcon.classList.add('budget__icon--isActive');
-        isActive = true;
-    } else {
-        budgetSwitch.style.backgroundColor = 'var(--expense-color)';
-        plusIcon.classList.remove('budget__icon--isActive');
-        isActive = false;
-    }
+const formatNumberWithTwoDecimals = (number) => {
+    return number.toFixed(2);
+};
+
+const toggleActiveState = () => {
+    isActive = !isActive;
+    budgetSwitch.style.backgroundColor = isActive ? 'var(--income-color)' : 'var(--expense-color)';
+    plusIcon.classList.toggle('budget__icon--isActive', isActive);
 };
 
 const createFinance = (id, description, value, type) => {
-    let financeItemHTML = '';
-    let itemValue = type === 'incomes' ? `${formatNumberWithTwoDecimals(value)}` : `-${formatNumberWithTwoDecimals(value)}`;
-    let currencyColor = type === 'incomes' ? 'var(--income-color)' : 'var(--expense-color)';
-    let plusIconVisibility = type === 'incomes' ? 'visible' : 'hidden';
+    const itemValue = type === 'incomes' ? `${formatNumberWithTwoDecimals(value)}` : `-${formatNumberWithTwoDecimals(value)}`;
+    const currencyColor = type === 'incomes' ? 'var(--income-color)' : 'var(--expense-color)';
+    const plusIconVisibility = type === 'incomes' ? 'visible' : 'hidden';
     const descriptionClass = description.length > 15 ? 'item__description--truncate' : '';
 
-    financeItemHTML = `
-    <div class="list__list" id="${id}">
-        <div class="list__item">
-            <p class="item__description ${descriptionClass}">${description}</p>
-            <span class="item__plus-icon item__value--incomes" style="visibility: ${plusIconVisibility}">+</span>
-            <p class="item__values item__value--${type}">${itemValue}</p>
-            <span class="item__currency" style="color: ${currencyColor}">PLN</span>
-            <div class="item__buttons">
-                <button class="item__button item__button--edit" onclick="editFinance('${id}', '${type}')">
-                    <img class="item__icon" src="assets/editIcon.svg" alt="Edit icon">
-                </button>
-                <button class="item__button item__button--delete" onclick="deleteFinance('${id}', '${type}')">
-                    <img class="item__icon" src="assets/deleteIcon.svg" alt="Delete icon">
-                </button>
+    return `
+        <div class="list__list" id="${id}">
+            <div class="list__item">
+                <p class="item__description ${descriptionClass}">${description}</p>
+                <span class="item__plus-icon item__value--incomes" style="visibility: ${plusIconVisibility}">+</span>
+                <p class="item__values item__value--${type}">${itemValue}</p>
+                <span class="item__currency" style="color: ${currencyColor}">PLN</span>
+                <div class="item__buttons">
+                    <button class="item__button item__button--edit" onclick="editFinance('${id}', '${type}')">
+                        <img class="item__icon" src="assets/editIcon.svg" alt="Edit icon">
+                    </button>
+                    <button class="item__button item__button--delete" onclick="deleteFinance('${id}', '${type}')">
+                        <img class="item__icon" src="assets/deleteIcon.svg" alt="Delete icon">
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-  `;
-
-    return financeItemHTML;
+    `;
 };
 
 const isValidInput = (description, value) => {
-    if (value <= 0 || description === '') {
-        budgetError.style.visibility = 'visible';
-        return false;
-    } else {
-        budgetError.style.visibility = 'hidden';
-        return true;
-    }
+    const isValid = value > 0 && description.trim() !== '';
+    budgetError.style.visibility = isValid ? 'hidden' : 'visible';
+    return isValid;
 };
 
 const handleBudgetCheckClick = () => {
     if (isEditing) {
         return;
     }
-
     addFinance();
-};
-
-budgetCheck.addEventListener('click', handleBudgetCheckClick);
-budgetDescription.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-        handleBudgetCheckClick();
-    }
-});
-budgetValue.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-        handleBudgetCheckClick();
-    }
-});
-
-const formatNumberWithTwoDecimals = (number) => {
-    return number.toFixed(2);
 };
 
 const calculateTotalValue = () => {
     let total = 0;
     document.querySelectorAll('.item__values').forEach((valueElement) => {
         total += parseFloat(valueElement.textContent)
-    })
+    });
     return total;
-}
+};
 
 const saveDataToLocalStorage = () => {
     const incomesData = [];
@@ -109,7 +83,7 @@ const saveDataToLocalStorage = () => {
     document.querySelectorAll('.list__list').forEach((financeItem) => {
         const id = financeItem.id;
         const description = financeItem.querySelector('.item__description').textContent;
-        const value = Math.abs(parseFloat(financeItem.querySelector('.item__values').textContent));
+        const value = parseFloat(financeItem.querySelector('.item__values').textContent);
         const type = value >= 0 ? 'incomes' : 'expenses';
 
         const financeData = { id, description, value };
@@ -137,13 +111,13 @@ const getDataToLocalStorage = () => {
 
     for (const expense of expensesData) {
         const newExpenseItem = document.createElement('div');
-        newExpenseItem.innerHTML = createFinance(expense.id, expense.description, expense.value, 'expenses');
+        newExpenseItem.innerHTML = createFinance(expense.id, expense.description, Math.abs(expense.value), 'expenses');
         listExpenses.append(newExpenseItem);
     }
 
     totalValue = calculateTotalValue();
     financeHeadingVisibility();
-}
+};
 
 const addFinance = () => {
     const description = budgetDescription.value.trim();
@@ -172,12 +146,11 @@ const addFinance = () => {
 
         budgetDescription.value = '';
         budgetValue.value = '';
-        switchFinances()
-        isActive = false;
+        toggleActiveState();
     }
 
     financeHeadingVisibility();
-    saveDataToLocalStorage()
+    saveDataToLocalStorage();
 };
 
 const deleteFinance = (id, type) => {
@@ -200,7 +173,7 @@ const deleteFinance = (id, type) => {
     }
 
     financeHeadingVisibility();
-    saveDataToLocalStorage()
+    saveDataToLocalStorage();
 };
 
 const editFinance = (id, type) => {
@@ -236,10 +209,11 @@ const editFinance = (id, type) => {
         budgetCheck.removeEventListener('click', handleBudgetCheckClickDuringEdit);
         budgetDescription.removeEventListener('keydown', handleBudgetDescriptionKeydown);
         budgetValue.removeEventListener('keydown', handleBudgetValueKeydown);
+        toggleActiveState();
         isActive = true;
-        switchFinances()
+        switchFinances();
         isEditing = false;
-        saveDataToLocalStorage()
+        saveDataToLocalStorage();
     };
 
     const handleBudgetDescriptionKeydown = (event) => {
@@ -254,13 +228,8 @@ const editFinance = (id, type) => {
         }
     };
 
-
-    if (type === 'incomes') {
-        isActive = false;
-        switchFinances()
-    } else if (type === 'expenses') {
-        isActive = true;
-        switchFinances()
+    if ((type === 'incomes' && !isActive) || (type === 'expenses' && isActive)) {
+        toggleActiveState();
     }
 
     budgetCheck.addEventListener('click', handleBudgetCheckClickDuringEdit);
@@ -269,16 +238,36 @@ const editFinance = (id, type) => {
 };
 
 const financeHeadingVisibility = () => {
+    numberOfIncomesItems = listIncomes.querySelectorAll('.list__list').length;
+    numberOfExpensesItems = listExpenses.querySelectorAll('.list__list').length;
+
     headingExpenses.style.display = numberOfExpensesItems > 0 ? 'block' : 'none';
     headingIncomes.style.display = numberOfIncomesItems > 0 ? 'block' : 'none';
 
+    totalValue = calculateTotalValue();
     const formattedTotalValue = formatNumberWithTwoDecimals(totalValue);
     balanceValue.innerText = totalValue >= 0 ? `+${formattedTotalValue} PLN` : `${formattedTotalValue} PLN`;
     balanceValue.style.color = totalValue >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
 
-    saveDataToLocalStorage()
+    saveDataToLocalStorage();
+};
+
+const switchFinances = () => {
+    toggleActiveState();
 };
 
 budgetSwitch.addEventListener('click', switchFinances);
 
-document.addEventListener('DOMContentLoaded', getDataToLocalStorage)
+budgetCheck.addEventListener('click', handleBudgetCheckClick);
+budgetDescription.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        handleBudgetCheckClick();
+    }
+});
+budgetValue.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        handleBudgetCheckClick();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', getDataToLocalStorage);
