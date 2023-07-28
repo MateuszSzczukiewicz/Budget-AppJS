@@ -281,4 +281,3 @@ class BudgetApp {
 }
 
 const app = new BudgetApp();
-
